@@ -171,22 +171,27 @@ export function NoteDetailPage() {
           )}
 
           {phase === 'needs_clarification' && (
-            <ProcessingViewer
-              currentStep={processingData.currentStep}
-              currentAgent={processingData.currentAgent}
-              currentDetail={processingData.currentDetail}
-              progress={processingData.progress}
-              activityFeed={processingData.activityFeed}
-              extractedEntities={processingData.extractedEntities}
-              supplementaryPanel={(
+            <div className="space-y-4">
+              <div className="xl:h-[calc(100svh-11rem)] xl:min-h-[calc(100svh-11rem)]">
+                <ProcessingViewer
+                  currentStep={processingData.currentStep}
+                  currentAgent={processingData.currentAgent}
+                  currentDetail={processingData.currentDetail}
+                  progress={processingData.progress}
+                  activityFeed={processingData.activityFeed}
+                  extractedEntities={processingData.extractedEntities}
+                  freezeFeed
+                />
+              </div>
+              <div className="panel">
                 <AmbiguityBox
                   key={questions.map((question, index) => question.id || index).join('-')}
                   questions={questions}
                   onSubmit={handleClarificationSubmit}
                   isLoading={isSubmittingClarification}
                 />
-              )}
-            />
+              </div>
+            </div>
           )}
 
           {phase === 'completed' && result ? <ResultCard result={result} /> : null}

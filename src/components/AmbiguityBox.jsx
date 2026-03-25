@@ -41,9 +41,7 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
   const isAnswered = (question) => {
     if (question.answer_type === 'hybrid') {
       const current = getHybridAnswer(question.id);
-      const selectionReady = question.selection_required ? current.choice.length > 0 : true;
-      const textReady = question.text_required ? current.text.length > 0 : true;
-      return selectionReady && textReady;
+      return current.choice.length > 0 || current.text.length > 0;
     }
 
     return String(answers[question.id] || '').trim().length > 0;

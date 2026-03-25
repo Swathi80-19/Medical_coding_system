@@ -2,14 +2,14 @@ import { useEffect, useRef } from 'react';
 
 // Medical codes data
 const MEDICAL_CODES = [
-  { code: 'E11.9', label: 'Type 2 Diabetes', color: '#00f0ff' },
-  { code: 'I10', label: 'Hypertension', color: '#a855f7' },
-  { code: '99213', label: 'Office Visit', color: '#10b981' },
-  { code: 'J44.9', label: 'COPD', color: '#f59e0b' },
-  { code: 'M79.3', label: 'Myalgia', color: '#00f0ff' },
-  { code: '99285', label: 'ED Visit', color: '#a855f7' },
-  { code: 'F41.1', label: 'Anxiety', color: '#10b981' },
-  { code: '82947', label: 'Glucose Test', color: '#f59e0b' },
+  { code: 'E11.9', label: 'Type 2 Diabetes', color: '#5b9f99' },
+  { code: 'I10', label: 'Hypertension', color: '#8fb4aa' },
+  { code: '99213', label: 'Office Visit', color: '#7cab92' },
+  { code: 'J44.9', label: 'COPD', color: '#d7b98a' },
+  { code: 'M79.3', label: 'Myalgia', color: '#5b9f99' },
+  { code: '99285', label: 'ED Visit', color: '#8fb4aa' },
+  { code: 'F41.1', label: 'Anxiety', color: '#7cab92' },
+  { code: '82947', label: 'Glucose Test', color: '#d7b98a' },
 ];
 
 class FloatingCode {
@@ -132,7 +132,7 @@ export function FloatingMedicalCodes() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none opacity-50"
+      className="fixed inset-0 pointer-events-none opacity-40"
       style={{ background: 'transparent' }}
     />
   );

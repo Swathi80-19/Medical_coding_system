@@ -120,9 +120,9 @@ export function AdvancedDNAAnimation() {
       canvas.height = window.innerHeight;
 
       rails = [
-        new GenomeRail(canvas.width * 0.16, canvas.height * 0.28, canvas.height * 0.34, 0.95, '#22d3ee'),
-        new GenomeRail(canvas.width * 0.82, canvas.height * 0.4, canvas.height * 0.28, 0.8, '#34d399'),
-        new GenomeRail(canvas.width * 0.58, canvas.height * 0.78, canvas.height * 0.22, 0.64, '#67e8f9'),
+        new GenomeRail(canvas.width * 0.16, canvas.height * 0.28, canvas.height * 0.34, 0.95, '#5b9f99'),
+        new GenomeRail(canvas.width * 0.82, canvas.height * 0.4, canvas.height * 0.28, 0.8, '#7cab92'),
+        new GenomeRail(canvas.width * 0.58, canvas.height * 0.78, canvas.height * 0.22, 0.64, '#8dbab2'),
       ];
     };
 

@@ -62,7 +62,7 @@ export function LandingPage() {
         </header>
 
         <main className="w-full pb-0">
-          <section className="landing-composition overflow-hidden border-y border-white/10">
+          <section className="landing-composition overflow-hidden border-y border-stone-200/70">
             <div className="grid gap-0 xl:grid-cols-[1.08fr_0.92fr]">
               <motion.div
                 initial={{ opacity: 0, y: 28 }}
@@ -76,10 +76,10 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-5">
-                  <h1 className="max-w-4xl font-display text-5xl leading-[0.92] text-white sm:text-6xl lg:text-7xl">
+                  <h1 className="max-w-4xl font-display text-5xl leading-[0.92] text-slate-800 sm:text-6xl lg:text-7xl">
                     Medical coding command center for notes, clarifications, and final review.
                   </h1>
-                  <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                  <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
                     Upload a clinical note, watch each agent operate live, resolve ambiguity with explicit questions, and finish with ICD-10, CPT, confidence, reasoning, and audit trace in one continuous interface.
                   </p>
                 </div>
@@ -114,7 +114,7 @@ export function LandingPage() {
                 <div className="landing-preview-header">
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Workflow preview</p>
-                    <h2 className="mt-2 font-display text-2xl text-white">From note intake to coded output</h2>
+                    <h2 className="mt-2 font-display text-2xl text-slate-800">From note intake to coded output</h2>
                   </div>
                   <div className="status-pill">Live demo</div>
                 </div>
@@ -131,13 +131,13 @@ export function LandingPage() {
                         className="landing-workflow-card"
                       >
                         <div className="flex items-start gap-4">
-                          <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100">
+                          <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-teal-500/20 bg-teal-500/10 text-teal-700">
                             <Icon className="h-5 w-5" />
                           </div>
                           <div>
                             <p className="text-sm uppercase tracking-[0.26em] text-slate-500">Stage {index + 1}</p>
-                            <h3 className="mt-2 text-lg text-slate-100">{card.title}</h3>
-                            <p className="mt-2 text-sm leading-6 text-slate-400">{card.detail}</p>
+                            <h3 className="mt-2 text-lg text-slate-800">{card.title}</h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">{card.detail}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -150,20 +150,20 @@ export function LandingPage() {
             <div className="landing-lower-band">
               <div className="landing-lower-copy">
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Why this flow feels different</p>
-                <h3 className="mt-2 font-display text-3xl text-white">No dead ends, no mystery states, no buried audit context.</h3>
+                <h3 className="mt-2 font-display text-3xl text-slate-800">No dead ends, no mystery states, no buried audit context.</h3>
               </div>
 
               <div className="landing-lower-cards">
                 <div className="landing-mini-card">
-                  <Waves className="h-4 w-4 text-cyan-100" />
+                  <Waves className="h-4 w-4 text-teal-700" />
                   <span>Processing remains live until either completion or clarification.</span>
                 </div>
                 <div className="landing-mini-card">
-                  <ShieldCheck className="h-4 w-4 text-cyan-100" />
+                  <ShieldCheck className="h-4 w-4 text-teal-700" />
                   <span>Ambiguity is surfaced as explicit user questions instead of silent failure.</span>
                 </div>
                 <div className="landing-mini-card">
-                  <ClipboardCheck className="h-4 w-4 text-cyan-100" />
+                  <ClipboardCheck className="h-4 w-4 text-teal-700" />
                   <span>Reasoning, confidence, and audit trail are part of the primary result.</span>
                 </div>
               </div>

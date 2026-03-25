@@ -123,17 +123,17 @@ export function NoteDetailPage() {
 
   return (
     <section className="page-shell">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 px-4 py-4 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200/80 px-4 py-4 sm:px-6 lg:px-8">
         <button type="button" onClick={() => navigate(-1)} className="secondary-button">
           <ArrowLeft className="h-4 w-4" />
           <span>Back</span>
         </button>
-        <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.28em] text-slate-400">
+        <div className="rounded-full border border-stone-200/80 bg-white/75 px-4 py-2 text-xs uppercase tracking-[0.28em] text-slate-500">
           Note {id}
         </div>
       </div>
 
-      <div className="border-y border-white/10 bg-slate-950/26 px-4 py-4 sm:px-6 lg:px-8">
+      <div className="border-y border-stone-200/70 bg-white/20 px-4 py-4 sm:px-6 lg:px-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={phase}
@@ -143,10 +143,10 @@ export function NoteDetailPage() {
             transition={{ duration: 0.24 }}
           >
           {phase === 'loading' && (
-            <div className="flex min-h-[22rem] flex-col items-center justify-center gap-4 border border-white/10 bg-slate-950/35 px-6 text-center">
-              <Loader2 className="h-10 w-10 animate-spin text-cyan-100" />
-              <h1 className="font-display text-3xl text-white">Initializing note workspace</h1>
-              <p className="max-w-md text-sm leading-6 text-slate-400">Loading the current processing state and checking whether the note needs clarification or already has a final result.</p>
+            <div className="flex min-h-[22rem] flex-col items-center justify-center gap-4 border border-stone-200/80 bg-white/72 px-6 text-center">
+              <Loader2 className="h-10 w-10 animate-spin text-teal-700" />
+              <h1 className="font-display text-3xl text-slate-800">Initializing note workspace</h1>
+              <p className="max-w-md text-sm leading-6 text-slate-500">Loading the current processing state and checking whether the note needs clarification or already has a final result.</p>
             </div>
           )}
 
@@ -187,12 +187,12 @@ export function NoteDetailPage() {
           {phase === 'completed' && result ? <ResultCard result={result} /> : null}
 
           {phase === 'error' && (
-            <div className="flex min-h-[18rem] flex-col items-center justify-center gap-4 border border-white/10 bg-slate-950/35 px-6 text-center">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-400/10 text-rose-100">
+            <div className="flex min-h-[18rem] flex-col items-center justify-center gap-4 border border-stone-200/80 bg-white/72 px-6 text-center">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-50/80 text-rose-700">
                 <AlertTriangle className="h-6 w-6" />
               </div>
-              <h1 className="font-display text-3xl text-white">Note unavailable</h1>
-              <p className="max-w-md text-sm leading-6 text-slate-400">
+              <h1 className="font-display text-3xl text-slate-800">Note unavailable</h1>
+              <p className="max-w-md text-sm leading-6 text-slate-500">
                 {error || 'This note could not be resolved. Return to the dashboard or upload a new note to continue.'}
               </p>
               <div className="flex flex-wrap gap-3">

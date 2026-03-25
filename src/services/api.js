@@ -172,8 +172,8 @@ function buildActivityFeed(content, stepIndex) {
 
   return blueprintSlice.map((item, index) => ({
     agent: item.agent,
-    title: item.step,
-    detail: item.telemetry[index % item.telemetry.length],
+    title: item.telemetry[index % item.telemetry.length],
+    detail: item.detail,
     status: index === stepIndex ? 'active' : 'completed',
     timestamp: `${index + 1}.0s`,
   })).concat(

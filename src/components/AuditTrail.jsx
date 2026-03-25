@@ -10,11 +10,11 @@ export function AuditTrail({ events = [] }) {
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.06 }}
-          className="relative overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/55 p-5"
+          className="relative overflow-hidden rounded-[24px] border border-stone-200/80 bg-white/72 p-5"
         >
-          <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-cyan-400/0 via-cyan-300/60 to-cyan-400/0" />
+          <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-teal-500/0 via-teal-500/60 to-teal-500/0" />
           <div className="flex items-start gap-4">
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-100">
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-teal-500/20 bg-teal-500/10 text-teal-700">
               {event.duration ? <Radar className="h-5 w-5" /> : <Clock3 className="h-5 w-5" />}
             </div>
 
@@ -24,16 +24,16 @@ export function AuditTrail({ events = [] }) {
                   Step {event.step ?? index + 1}
                 </p>
                 {event.agent && (
-                  <span className="rounded-full border border-emerald-300/15 bg-emerald-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-emerald-200">
+                  <span className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-emerald-700">
                     {event.agent}
                   </span>
                 )}
               </div>
-              <p className="mt-3 text-base text-slate-100">{event.action || event}</p>
+              <p className="mt-3 text-base text-slate-700">{event.action || event}</p>
             </div>
 
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-slate-500">
-              <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               <span>{event.duration || 'logged'}</span>
             </div>
           </div>

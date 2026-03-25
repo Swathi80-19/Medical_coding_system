@@ -28,12 +28,12 @@ export function AmbientBackground({ variant = 'app' }) {
       />
 
       <motion.div
-        className="absolute inset-y-0 left-[12%] w-px bg-gradient-to-b from-transparent via-cyan-400/25 to-transparent"
+        className="absolute inset-y-0 left-[12%] w-px bg-gradient-to-b from-transparent via-teal-500/20 to-transparent"
         animate={prefersReducedMotion ? undefined : { opacity: [0.18, 0.45, 0.18] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute inset-y-0 right-[18%] w-px bg-gradient-to-b from-transparent via-emerald-400/15 to-transparent"
+        className="absolute inset-y-0 right-[18%] w-px bg-gradient-to-b from-transparent via-emerald-500/18 to-transparent"
         animate={prefersReducedMotion ? undefined : { opacity: [0.1, 0.3, 0.1] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />

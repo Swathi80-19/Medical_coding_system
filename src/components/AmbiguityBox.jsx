@@ -13,6 +13,9 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
         id: question.id || `question_${index}`,
         required: question.required ?? true,
         answer_type: question.answer_type || (question.options?.length ? 'choice' : 'text'),
+        selection_required:
+          question.selection_required ?? (question.answer_type === 'hybrid' || Boolean(question.options?.length)),
+        text_required: question.text_required ?? false,
       })),
     [questions]
   );
@@ -20,26 +23,91 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
   const activeQuestion =
     normalizedQuestions.find((question) => question.id === activeQuestionId) || normalizedQuestions[0];
 
-  const isAnswered = (question) => String(answers[question.id] || '').trim().length > 0;
+  const getHybridAnswer = (questionId) => {
+    const current = answers[questionId];
+    if (current && typeof current === 'object' && !Array.isArray(current)) {
+      return {
+        choice: String(current.choice || '').trim(),
+        text: String(current.text || '').trim(),
+      };
+    }
+
+    return {
+      choice: '',
+      text: typeof current === 'string' ? current.trim() : '',
+    };
+  };
+
+  const isAnswered = (question) => {
+    if (question.answer_type === 'hybrid') {
+      const current = getHybridAnswer(question.id);
+      const selectionReady = question.selection_required ? current.choice.length > 0 : true;
+      const textReady = question.text_required ? current.text.length > 0 : true;
+      return selectionReady && textReady;
+    }
+
+    return String(answers[question.id] || '').trim().length > 0;
+  };
   const allRequiredAnswered = normalizedQuestions.every((question) => !question.required || isAnswered(question));
 
   const handleChoice = (questionId, option) => {
-    setAnswers((current) => ({
-      ...current,
-      [questionId]: option,
-    }));
+    setAnswers((current) => {
+      const existing = current[questionId];
+      if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
+        return {
+          ...current,
+          [questionId]: {
+            ...existing,
+            choice: option,
+          },
+        };
+      }
+
+      return {
+        ...current,
+        [questionId]: option,
+      };
+    });
   };
 
   const handleText = (questionId, value) => {
-    setAnswers((current) => ({
-      ...current,
-      [questionId]: value,
-    }));
+    setAnswers((current) => {
+      const active = normalizedQuestions.find((question) => question.id === questionId);
+      if (active?.answer_type === 'hybrid') {
+        const existing = current[questionId];
+        return {
+          ...current,
+          [questionId]: {
+            choice: existing && typeof existing === 'object' && !Array.isArray(existing) ? existing.choice || '' : '',
+            text: value,
+          },
+        };
+      }
+
+      return {
+        ...current,
+        [questionId]: value,
+      };
+    });
   };
 
-  const orderedAnswers = normalizedQuestions
-    .map((question) => answers[question.id] || '')
-    .filter((value) => String(value).trim().length > 0);
+  const submitPayload = normalizedQuestions.reduce((payload, question) => {
+    const current = answers[question.id];
+
+    if (question.answer_type === 'hybrid') {
+      const hybrid = getHybridAnswer(question.id);
+      if (hybrid.choice || hybrid.text) {
+        payload[question.id] = hybrid;
+      }
+      return payload;
+    }
+
+    if (String(current || '').trim().length > 0) {
+      payload[question.id] = current;
+    }
+
+    return payload;
+  }, {});
 
   return (
     <div className="space-y-5">
@@ -96,8 +164,20 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Question {index + 1}</span>
-                        <span className={`ambiguity-mode-pill ${question.answer_type === 'choice' ? 'ambiguity-mode-pill-choice' : 'ambiguity-mode-pill-text'}`}>
-                          {question.answer_type === 'choice' ? 'Choose one' : 'Type input'}
+                        <span
+                          className={`ambiguity-mode-pill ${
+                            question.answer_type === 'choice'
+                              ? 'ambiguity-mode-pill-choice'
+                              : question.answer_type === 'hybrid'
+                                ? 'ambiguity-mode-pill-hybrid'
+                                : 'ambiguity-mode-pill-text'
+                          }`}
+                        >
+                          {question.answer_type === 'choice'
+                            ? 'Choose one'
+                            : question.answer_type === 'hybrid'
+                              ? 'Hybrid input'
+                              : 'Type input'}
                         </span>
                         {question.required ? (
                           <span className="ambiguity-required-pill">Required</span>
@@ -136,8 +216,20 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
                 <div className="rounded-[24px] border border-stone-200/80 bg-white/72 p-5">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Active clarification</span>
-                    <span className={`ambiguity-mode-pill ${activeQuestion.answer_type === 'choice' ? 'ambiguity-mode-pill-choice' : 'ambiguity-mode-pill-text'}`}>
-                      {activeQuestion.answer_type === 'choice' ? 'Choose one response' : 'Provide typed detail'}
+                    <span
+                      className={`ambiguity-mode-pill ${
+                        activeQuestion.answer_type === 'choice'
+                          ? 'ambiguity-mode-pill-choice'
+                          : activeQuestion.answer_type === 'hybrid'
+                            ? 'ambiguity-mode-pill-hybrid'
+                            : 'ambiguity-mode-pill-text'
+                      }`}
+                    >
+                      {activeQuestion.answer_type === 'choice'
+                        ? 'Choose one response'
+                        : activeQuestion.answer_type === 'hybrid'
+                          ? 'Select and add detail'
+                          : 'Provide typed detail'}
                     </span>
                   </div>
                   <h3 className="mt-3 font-display text-2xl text-slate-800">{activeQuestion.prompt}</h3>
@@ -153,7 +245,9 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
                     </p>
                     <div className="grid gap-3 md:grid-cols-2">
                       {activeQuestion.options.map((option) => {
-                        const selected = answers[activeQuestion.id] === option;
+                        const selected = activeQuestion.answer_type === 'hybrid'
+                          ? getHybridAnswer(activeQuestion.id).choice === option
+                          : answers[activeQuestion.id] === option;
 
                         return (
                           <button
@@ -179,12 +273,16 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
                 {activeQuestion.answer_type !== 'choice' ? (
                   <div className="space-y-3">
                     <p className="text-xs uppercase tracking-[0.26em] text-slate-500">
-                      {activeQuestion.input_label || 'Type the clarification'}
+                      {activeQuestion.text_input_label || activeQuestion.input_label || 'Type the clarification'}
                     </p>
                     <div className="relative">
                       <TextCursorInput className="pointer-events-none absolute left-4 top-4 h-4 w-4 text-teal-700/70" />
                       <textarea
-                        value={answers[activeQuestion.id] || ''}
+                        value={
+                          activeQuestion.answer_type === 'hybrid'
+                            ? getHybridAnswer(activeQuestion.id).text
+                            : answers[activeQuestion.id] || ''
+                        }
                         onChange={(event) => handleText(activeQuestion.id, event.target.value)}
                         placeholder={activeQuestion.placeholder || 'Type your clarification here'}
                         className="input-shell min-h-36 w-full resize-none pl-11"
@@ -205,8 +303,8 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
 
             <button
               type="button"
-              onClick={() => onSubmit(orderedAnswers)}
-              disabled={!allRequiredAnswered || orderedAnswers.length === 0 || isLoading}
+              onClick={() => onSubmit(submitPayload)}
+              disabled={!allRequiredAnswered || Object.keys(submitPayload).length === 0 || isLoading}
               className="primary-button"
             >
               <Send className="h-4 w-4" />

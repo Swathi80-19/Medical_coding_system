@@ -40,8 +40,8 @@ export function UploadPanel({ note, onChange, onSubmit, onFileImport, isLoading,
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200/80 pb-5">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-200/80 pb-5">
         <div>
           <div className="status-pill">
             <Sparkles className="h-4 w-4" />
@@ -58,8 +58,8 @@ export function UploadPanel({ note, onChange, onSubmit, onFileImport, isLoading,
         </div>
       </div>
 
-      <div className="mt-5 flex-1 rounded-[28px] border border-stone-200/80 bg-white/72 p-5">
-        <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mt-5 flex flex-1 flex-col rounded-[28px] border border-stone-200/80 bg-white/72 p-6 xl:p-7">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-teal-500/20 bg-teal-500/10 text-teal-700">
               <FileText className="h-5 w-5" />
@@ -83,7 +83,7 @@ export function UploadPanel({ note, onChange, onSubmit, onFileImport, isLoading,
           className="hidden"
         />
 
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[22px] border border-stone-200/80 bg-white/78 p-3">
+        <div className="mb-5 flex flex-wrap items-center gap-3 rounded-[22px] border border-stone-200/80 bg-white/78 p-4">
           <button type="button" onClick={handlePickFile} className="secondary-button">
             <Upload className="h-4 w-4" />
             <span>Upload file</span>
@@ -105,7 +105,7 @@ export function UploadPanel({ note, onChange, onSubmit, onFileImport, isLoading,
           value={note}
           onChange={(event) => onChange(event.target.value)}
           placeholder="Paste the clinical note here. Include diagnoses, procedures, medications, labs, or any ambiguity you want the validation agent to catch."
-          className="input-shell min-h-[18rem] w-full resize-none"
+          className="input-shell min-h-[18rem] flex-1 w-full resize-none"
         />
 
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200/80">

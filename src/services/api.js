@@ -78,6 +78,8 @@ function createSeededCompletedNote() {
 
 function createSeededClarificationNote() {
   const noteId = 'demo-clarify';
+  const timeline = buildProcessingTimeline(sampleClinicalNotes[1].content, true);
+  const clarificationCursor = timeline.findIndex((entry) => entry.type === 'clarification_gate');
   noteStore.set(noteId, {
     note_id: noteId,
     content: sampleClinicalNotes[1].content,
@@ -86,15 +88,17 @@ function createSeededClarificationNote() {
   });
   workflowStore.set(noteId, {
     status: 'needs_clarification',
-    stepIndex: 4,
-    steps: processingBlueprint.slice(0, 4),
+    cursor: clarificationCursor,
+    timeline,
     needsClarification: true,
     clarificationResolved: false,
+    clarificationResumeCursor: clarificationCursor + 1,
   });
 }
 
 function createSeededProcessingNote() {
   const noteId = 'demo-processing';
+  const timeline = buildProcessingTimeline(sampleClinicalNotes[2].content, false);
   noteStore.set(noteId, {
     note_id: noteId,
     content: sampleClinicalNotes[2].content,
@@ -103,8 +107,8 @@ function createSeededProcessingNote() {
   });
   workflowStore.set(noteId, {
     status: 'processing',
-    stepIndex: 2,
-    steps: [],
+    cursor: 7,
+    timeline,
     needsClarification: false,
     clarificationResolved: true,
   });
@@ -113,14 +117,17 @@ function createSeededProcessingNote() {
 function createWorkflow(noteId) {
   const note = noteStore.get(noteId);
   const needsClarification = isClarificationLikely(note?.content || '');
+  const timeline = buildProcessingTimeline(note?.content || '', needsClarification);
+  const clarificationCursor = timeline.findIndex((entry) => entry.type === 'clarification_gate');
 
   workflowStore.set(noteId, {
     status: 'processing',
-    stepIndex: 0,
-    steps: [],
+    cursor: 0,
+    timeline,
     needsClarification,
     clarificationResolved: !needsClarification,
     clarificationAnswers: [],
+    clarificationResumeCursor: clarificationCursor >= 0 ? clarificationCursor + 1 : timeline.length,
   });
 }
 
@@ -166,25 +173,87 @@ function deriveLiveInsights(content, stepIndex) {
   };
 }
 
-function buildActivityFeed(content, stepIndex) {
-  const noteSignals = deriveLiveInsights(content, stepIndex);
-  const blueprintSlice = processingBlueprint.slice(0, stepIndex + 1);
-
-  return blueprintSlice.map((item, index) => ({
-    agent: item.agent,
-    title: item.telemetry[index % item.telemetry.length],
-    detail: item.detail,
-    status: index === stepIndex ? 'active' : 'completed',
-    timestamp: `${index + 1}.0s`,
-  })).concat(
-    noteSignals.evidence.slice(0, 2).map((signal, index) => ({
-      agent: 'Signal Layer',
-      title: 'Evidence trace',
-      detail: signal,
-      status: 'active',
-      timestamp: `${stepIndex + index + 1}.2s`,
+function buildProcessingTimeline(content, needsClarification) {
+  const timeline = processingBlueprint.flatMap((item, stageIndex) =>
+    item.telemetry.map((telemetry, telemetryIndex) => ({
+      type: 'telemetry',
+      stageIndex,
+      telemetryIndex,
+      agent: item.agent,
+      step: item.step,
+      detail: item.detail,
+      telemetry,
     }))
   );
+
+  if (needsClarification) {
+    const validationStageIndex = processingBlueprint.findIndex((item) => item.agent === 'Validation + Ambiguity Agent');
+    const insertAt = processingBlueprint
+      .slice(0, validationStageIndex + 1)
+      .reduce((count, item) => count + item.telemetry.length, 0);
+
+    timeline.splice(insertAt, 0, {
+      type: 'clarification_gate',
+      stageIndex: validationStageIndex,
+      telemetryIndex: processingBlueprint[validationStageIndex].telemetry.length,
+      agent: 'Validation + Ambiguity Agent',
+      step: 'Clarification required',
+      detail: 'Ambiguity detected. The workflow is paused until the clinician or operator responds.',
+      telemetry: 'Generated hybrid clarification request',
+    });
+  }
+
+  return timeline.map((entry, index) => ({
+    ...entry,
+    progress: Math.min(96, Math.round(((index + 1) / timeline.length) * 100)),
+    timestamp: `${((index + 1) * 0.6).toFixed(1)}s`,
+  }));
+}
+
+function buildActivityFeed(content, timeline, cursor) {
+  const safeCursor = Math.max(0, Math.min(cursor, timeline.length - 1));
+  const activeEvent = timeline[safeCursor];
+  const stageIndex = activeEvent?.stageIndex ?? 0;
+  const noteSignals = deriveLiveInsights(content, stageIndex);
+  const signalDetail = noteSignals.evidence[Math.min(stageIndex, Math.max(noteSignals.evidence.length - 1, 0))];
+
+  const feed = timeline.slice(0, safeCursor + 1).map((item, index) => ({
+    agent: item.agent,
+    title: item.telemetry,
+    detail: item.type === 'clarification_gate' ? item.detail : `${item.step}. ${item.detail}`,
+    status: index === safeCursor ? 'active' : 'completed',
+    timestamp: item.timestamp,
+  }));
+
+  if (signalDetail) {
+    feed.push({
+      agent: 'Signal Layer',
+      title: 'Evidence trace',
+      detail: signalDetail,
+      status: 'completed',
+      timestamp: `${safeCursor + 1}.signal`,
+    });
+  }
+
+  return feed;
+}
+
+function buildStatusPayload(workflow, noteId, status) {
+  const note = noteStore.get(noteId);
+  const cursor = Math.max(0, Math.min(workflow.cursor, workflow.timeline.length - 1));
+  const currentEvent = workflow.timeline[cursor];
+  const liveInsights = deriveLiveInsights(note.content, currentEvent?.stageIndex ?? 0);
+
+  return {
+    status,
+    current_step: currentEvent?.step || 'Initializing workflow',
+    current_agent: currentEvent?.agent || 'Intake + Clinical Agent',
+    current_detail: currentEvent?.detail || 'Preparing the processing pipeline.',
+    progress: currentEvent?.progress || 0,
+    activity_feed: buildActivityFeed(note.content, workflow.timeline, cursor),
+    extracted_entities: liveInsights,
+    questions: status === 'needs_clarification' ? buildClarificationQuestions(note.content) : undefined,
+  };
 }
 
 function isClarificationLikely(content) {
@@ -197,22 +266,17 @@ function buildClarificationQuestions(content) {
   if (lowered.includes('diabetes')) {
     return [
       {
-        id: 'diabetes_type',
-        prompt: 'What diabetes type should the coding agent use?',
+        id: 'diabetes_clarification',
+        prompt: 'Confirm the diabetes type and add any supporting detail needed for coding.',
         options: ['Type 1', 'Type 2', 'Gestational', 'Unspecified'],
-        answer_type: 'choice',
+        answer_type: 'hybrid',
         required: true,
-        helper_text: 'Choose the most specific diabetes type documented in the chart.',
+        selection_required: true,
+        text_required: false,
+        helper_text: 'Choose the most specific diabetes type documented in the chart, then add optional lab, medication, or insulin detail if available.',
         input_label: 'Select one diagnosis path',
-      },
-      {
-        id: 'supporting_detail',
-        prompt: 'Add any lab or treatment detail that should be considered before final coding.',
-        answer_type: 'text',
-        required: false,
-        helper_text: 'Optional but useful if the note mentions A1c, glucose values, medication, or insulin use.',
+        text_input_label: 'Add supporting clinical detail',
         placeholder: 'Example: A1c 8.2%, fasting glucose 210 mg/dL, currently on metformin.',
-        input_label: 'Add supporting clinical detail',
       },
     ];
   }
@@ -353,21 +417,10 @@ async function mockGetStatus(noteId) {
   }
 
   if (workflow.status === 'needs_clarification' && !workflow.clarificationResolved) {
-    const liveInsights = deriveLiveInsights(noteStore.get(noteId).content, 3);
-    return {
-      status: 'needs_clarification',
-      current_step: processingBlueprint[3].step,
-      current_agent: processingBlueprint[3].agent,
-      current_detail: processingBlueprint[3].detail,
-      progress: 76,
-      steps: workflow.steps.map((step) => ({ agent: step.agent, step: step.step })),
-      activity_feed: buildActivityFeed(noteStore.get(noteId).content, 3),
-      extracted_entities: liveInsights,
-      questions: buildClarificationQuestions(noteStore.get(noteId).content),
-    };
+    return buildStatusPayload(workflow, noteId, 'needs_clarification');
   }
 
-  if (workflow.stepIndex >= processingBlueprint.length) {
+  if (workflow.cursor >= workflow.timeline.length) {
     const result = buildCompletedResult(
       noteId,
       noteStore.get(noteId).content,
@@ -378,40 +431,20 @@ async function mockGetStatus(noteId) {
     return { status: 'completed', progress: 100 };
   }
 
-  const nextStep = processingBlueprint[workflow.stepIndex];
-  const liveInsights = deriveLiveInsights(noteStore.get(noteId).content, workflow.stepIndex);
-  workflow.steps = processingBlueprint.slice(0, workflow.stepIndex + 1);
-
-  if (workflow.needsClarification && !workflow.clarificationResolved && workflow.stepIndex >= 3) {
+  if (
+    workflow.needsClarification &&
+    !workflow.clarificationResolved &&
+    workflow.timeline[workflow.cursor]?.type === 'clarification_gate'
+  ) {
     workflow.status = 'needs_clarification';
-    workflow.steps = processingBlueprint.slice(0, 4);
-
-    return {
-      status: 'needs_clarification',
-      current_step: processingBlueprint[3].step,
-      current_agent: processingBlueprint[3].agent,
-      current_detail: processingBlueprint[3].detail,
-      progress: 76,
-      steps: workflow.steps.map((step) => ({ agent: step.agent, step: step.step })),
-      activity_feed: buildActivityFeed(noteStore.get(noteId).content, 3),
-      extracted_entities: liveInsights,
-      questions: buildClarificationQuestions(noteStore.get(noteId).content),
-    };
+    return buildStatusPayload(workflow, noteId, 'needs_clarification');
   }
 
   workflow.status = 'processing';
-  workflow.stepIndex += 1;
+  const payload = buildStatusPayload(workflow, noteId, 'processing');
+  workflow.cursor += 1;
 
-  return {
-    status: 'processing',
-    current_step: nextStep.step,
-    current_agent: nextStep.agent,
-    current_detail: nextStep.detail,
-    progress: Math.min(100, Math.round((workflow.stepIndex / processingBlueprint.length) * 100)),
-    steps: workflow.steps.map((step) => ({ agent: step.agent, step: step.step })),
-    activity_feed: buildActivityFeed(noteStore.get(noteId).content, workflow.stepIndex - 1 >= 0 ? workflow.stepIndex - 1 : 0),
-    extracted_entities: liveInsights,
-  };
+  return payload;
 }
 
 async function mockGetResult(noteId) {
@@ -436,7 +469,7 @@ async function mockSendClarification(noteId, answers) {
   workflow.status = 'processing';
   workflow.clarificationResolved = true;
   workflow.clarificationAnswers = normalizeAnswers(answers);
-  workflow.stepIndex = 4;
+  workflow.cursor = workflow.clarificationResumeCursor || workflow.cursor + 1;
 
   return { success: true };
 }
@@ -456,11 +489,15 @@ async function mockGetAllNotes() {
 
 function normalizeAnswers(answers) {
   if (Array.isArray(answers)) {
-    return answers;
+    return answers.flatMap((value) => normalizeAnswers(value));
   }
 
   if (answers && typeof answers === 'object') {
-    return Object.values(answers).filter(Boolean);
+    return Object.values(answers).flatMap((value) => normalizeAnswers(value));
+  }
+
+  if (typeof answers === 'string') {
+    return answers.trim() ? [answers.trim()] : [];
   }
 
   return [];

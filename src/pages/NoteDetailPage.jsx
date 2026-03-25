@@ -11,7 +11,7 @@ export function NoteDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [phase, setPhase] = useState('loading');
-  const [processingData, setProcessingData] = useState({ progress: 0, steps: [] });
+  const [processingData, setProcessingData] = useState({ progress: 0 });
   const [questions, setQuestions] = useState([]);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -56,7 +56,6 @@ export function NoteDetailPage() {
             currentStep: status.current_step,
             currentAgent: status.current_agent,
             currentDetail: status.current_detail,
-            steps: status.steps || [],
             activityFeed: status.activity_feed || [],
             extractedEntities: status.extracted_entities || {},
           });
@@ -72,7 +71,6 @@ export function NoteDetailPage() {
             currentStep: status.current_step,
             currentAgent: status.current_agent,
             currentDetail: status.current_detail,
-            steps: status.steps || [],
             activityFeed: status.activity_feed || [],
             extractedEntities: status.extracted_entities || {},
           });
@@ -94,7 +92,7 @@ export function NoteDetailPage() {
     };
 
     tick();
-    intervalId = window.setInterval(tick, 2000);
+    intervalId = window.setInterval(tick, 1100);
 
     return () => {
       cancelled = true;
@@ -103,7 +101,13 @@ export function NoteDetailPage() {
   }, [id, refreshKey]);
 
   const handleClarificationSubmit = async (answers) => {
-    if (!id || answers.length === 0) {
+    const hasAnswers = Array.isArray(answers)
+      ? answers.length > 0
+      : answers && typeof answers === 'object'
+        ? Object.keys(answers).length > 0
+        : false;
+
+    if (!id || !hasAnswers) {
       return;
     }
 
@@ -133,7 +137,7 @@ export function NoteDetailPage() {
         </div>
       </div>
 
-      <div className="border-y border-stone-200/70 bg-white/20 px-4 py-4 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100svh-11rem)] border-y border-stone-200/70 bg-white/20 px-4 py-4 sm:px-6 lg:px-8 xl:h-[calc(100svh-11rem)] xl:overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={phase}
@@ -141,6 +145,7 @@ export function NoteDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.24 }}
+            className="h-full"
           >
           {phase === 'loading' && (
             <div className="flex min-h-[22rem] flex-col items-center justify-center gap-4 border border-stone-200/80 bg-white/72 px-6 text-center">
@@ -156,32 +161,28 @@ export function NoteDetailPage() {
               currentAgent={processingData.currentAgent}
               currentDetail={processingData.currentDetail}
               progress={processingData.progress}
-              steps={processingData.steps}
               activityFeed={processingData.activityFeed}
               extractedEntities={processingData.extractedEntities}
             />
           )}
 
           {phase === 'needs_clarification' && (
-            <div className="space-y-6">
-              <ProcessingViewer
-                currentStep={processingData.currentStep}
-                currentAgent={processingData.currentAgent}
-                currentDetail={processingData.currentDetail}
-                progress={processingData.progress}
-                steps={processingData.steps}
-                activityFeed={processingData.activityFeed}
-                extractedEntities={processingData.extractedEntities}
-              />
-              <div className="panel">
+            <ProcessingViewer
+              currentStep={processingData.currentStep}
+              currentAgent={processingData.currentAgent}
+              currentDetail={processingData.currentDetail}
+              progress={processingData.progress}
+              activityFeed={processingData.activityFeed}
+              extractedEntities={processingData.extractedEntities}
+              supplementaryPanel={(
                 <AmbiguityBox
                   key={questions.map((question, index) => question.id || index).join('-')}
                   questions={questions}
                   onSubmit={handleClarificationSubmit}
                   isLoading={isSubmittingClarification}
                 />
-              </div>
-            </div>
+              )}
+            />
           )}
 
           {phase === 'completed' && result ? <ResultCard result={result} /> : null}

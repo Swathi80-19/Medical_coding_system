@@ -497,6 +497,11 @@ body::selection {
     transform: translateY(-1px);
   }
 
+  .ambiguity-question-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
   .ambiguity-question-card-active,
   .ambiguity-option-card-active {
     border-color: rgba(91, 159, 153, 0.24);
@@ -543,6 +548,18 @@ body::selection {
     border: 1px solid rgba(110, 140, 128, 0.16);
     background: rgba(255, 255, 255, 0.54);
     color: var(--text-1);
+  }
+
+  .ambiguity-workspace-shell {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 1.25rem;
+    border: 1px solid rgba(110, 140, 128, 0.14);
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(245, 250, 247, 0.82));
+    padding: 1.25rem;
   }
 
   .code-badge {
@@ -625,6 +642,18 @@ body::selection {
     min-height: 100%;
   }
 
+  .processing-clarification-layout {
+    display: grid;
+    gap: 1rem;
+    min-height: 100%;
+  }
+
+  .processing-clarification-top-row {
+    display: grid;
+    gap: 1rem;
+    min-height: 0;
+  }
+
   .processing-side-stack {
     display: flex;
     flex-direction: column;
@@ -646,6 +675,8 @@ body::selection {
   }
 
   .processing-supplementary-shell {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     overflow-y: auto;
     border: 1px solid rgba(110, 140, 128, 0.14);
@@ -705,15 +736,15 @@ body::selection {
   }
 
   .processing-feed-card {
-    border: 1px solid rgba(110, 140, 128, 0.14);
+    border: 1px solid rgba(124, 171, 146, 0.24);
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.62);
+    background: linear-gradient(180deg, rgba(124, 171, 146, 0.14), rgba(255, 255, 255, 0.74));
     padding: 0.95rem;
   }
 
   .processing-feed-card-active {
-    border-color: rgba(124, 171, 146, 0.24);
-    background: rgba(124, 171, 146, 0.1);
+    border-color: rgba(91, 159, 153, 0.34);
+    background: linear-gradient(180deg, rgba(91, 159, 153, 0.18), rgba(255, 255, 255, 0.76));
   }
 
   .processing-sheen {
@@ -830,5 +861,29 @@ body::selection {
 
   .processing-supplementary-shell {
     max-height: 22rem;
+  }
+
+  .processing-clarification-layout {
+    grid-template-rows: auto auto;
+    height: auto;
+  }
+
+  .processing-clarification-top-row {
+    grid-template-columns: minmax(0, 1.24fr) minmax(22rem, 0.96fr);
+    align-items: stretch;
+  }
+
+  .processing-clarification-top-row > * {
+    min-height: 24rem;
+    height: 24rem;
+  }
+
+  .processing-clarification-layout .processing-supplementary-shell {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .ambiguity-question-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

@@ -48,6 +48,7 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
 
     return String(answers[question.id] || '').trim().length > 0;
   };
+
   const allRequiredAnswered = normalizedQuestions.every((question) => !question.required || isAnswered(question));
 
   const handleChoice = (questionId, option) => {
@@ -110,99 +111,90 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
   }, {});
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-[28px] border border-amber-500/20 bg-[linear-gradient(135deg,rgba(254,243,199,0.9),rgba(255,255,255,0.82))] p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-700">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm uppercase tracking-[0.28em] text-amber-700/80">Ambiguity detected</p>
-              <h2 className="font-display text-2xl text-slate-800">The coding agent needs a precise answer before final validation.</h2>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                Review each clarification request below. Some questions need a single choice, while others need typed clinical detail.
-              </p>
-            </div>
+    <div className="flex h-full min-h-0 flex-col gap-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-700">
+            <AlertTriangle className="h-5 w-5" />
           </div>
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-[0.28em] text-amber-700/80">Clarification workspace</p>
+            <h2 className="font-display text-2xl text-slate-800">Answer the question below to continue validation.</h2>
+            <p className="max-w-3xl text-sm leading-6 text-slate-600">
+              Review the request, choose an option when available, and add typed detail where the question needs it.
+            </p>
+          </div>
+        </div>
 
-          <div className="ambiguity-summary">
-            <div>
-              <p className="ambiguity-summary-label">Questions</p>
-              <p className="ambiguity-summary-value">{normalizedQuestions.length}</p>
-            </div>
-            <div>
-              <p className="ambiguity-summary-label">Answered</p>
-              <p className="ambiguity-summary-value">
-                {normalizedQuestions.filter((question) => isAnswered(question)).length}
-              </p>
-            </div>
+        <div className="ambiguity-summary">
+          <div>
+            <p className="ambiguity-summary-label">Questions</p>
+            <p className="ambiguity-summary-value">{normalizedQuestions.length}</p>
+          </div>
+          <div>
+            <p className="ambiguity-summary-label">Answered</p>
+            <p className="ambiguity-summary-value">
+              {normalizedQuestions.filter((question) => isAnswered(question)).length}
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
-        <div className="panel space-y-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Clarification queue</p>
-            <h3 className="mt-2 font-display text-2xl text-slate-800">Questions</h3>
-          </div>
+      <div className="ambiguity-question-grid">
+        {normalizedQuestions.map((question, index) => {
+          const selected = activeQuestion?.id === question.id;
+          const answered = isAnswered(question);
 
-          <div className="space-y-3">
-            {normalizedQuestions.map((question, index) => {
-              const selected = activeQuestion?.id === question.id;
-              const answered = isAnswered(question);
-
-              return (
-                <button
-                  key={question.id}
-                  type="button"
-                  onClick={() => setActiveQuestionId(question.id)}
-                  className={`ambiguity-question-card ${selected ? 'ambiguity-question-card-active' : ''}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Question {index + 1}</span>
-                        <span
-                          className={`ambiguity-mode-pill ${
-                            question.answer_type === 'choice'
-                              ? 'ambiguity-mode-pill-choice'
-                              : question.answer_type === 'hybrid'
-                                ? 'ambiguity-mode-pill-hybrid'
-                                : 'ambiguity-mode-pill-text'
-                          }`}
-                        >
-                          {question.answer_type === 'choice'
-                            ? 'Choose one'
-                            : question.answer_type === 'hybrid'
-                              ? 'Hybrid input'
-                              : 'Type input'}
-                        </span>
-                        {question.required ? (
-                          <span className="ambiguity-required-pill">Required</span>
-                        ) : (
-                          <span className="ambiguity-optional-pill">Optional</span>
-                        )}
-                      </div>
-                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">{question.prompt}</p>
-                    </div>
-
-                    <div className="mt-1">
-                      {answered ? (
-                        <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                      ) : (
-                        <HelpCircle className="h-5 w-5 text-amber-600" />
-                      )}
-                    </div>
+          return (
+            <button
+              key={question.id}
+              type="button"
+              onClick={() => setActiveQuestionId(question.id)}
+              className={`ambiguity-question-card ${selected ? 'ambiguity-question-card-active' : ''}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Question {index + 1}</span>
+                    <span
+                      className={`ambiguity-mode-pill ${
+                        question.answer_type === 'choice'
+                          ? 'ambiguity-mode-pill-choice'
+                          : question.answer_type === 'hybrid'
+                            ? 'ambiguity-mode-pill-hybrid'
+                            : 'ambiguity-mode-pill-text'
+                      }`}
+                    >
+                      {question.answer_type === 'choice'
+                        ? 'Choose one'
+                        : question.answer_type === 'hybrid'
+                          ? 'Hybrid input'
+                          : 'Type input'}
+                    </span>
+                    {question.required ? (
+                      <span className="ambiguity-required-pill">Required</span>
+                    ) : (
+                      <span className="ambiguity-optional-pill">Optional</span>
+                    )}
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">{question.prompt}</p>
+                </div>
 
-        <div className="panel space-y-5">
+                <div className="mt-1">
+                  {answered ? (
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                  ) : (
+                    <HelpCircle className="h-5 w-5 text-amber-600" />
+                  )}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="ambiguity-workspace-shell">
+        <div className="flex-1 space-y-5">
           {activeQuestion ? (
             <AnimatePresence mode="wait">
               <motion.div
@@ -293,24 +285,24 @@ export function AmbiguityBox({ questions = [], onSubmit, isLoading }) {
               </motion.div>
             </AnimatePresence>
           ) : null}
+        </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-stone-200/80 pt-4">
-            <p className="text-sm text-slate-500">
-              {allRequiredAnswered
-                ? 'All required ambiguity questions are answered. You can resume the workflow.'
-                : 'Complete all required questions before the coding workflow can continue.'}
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-stone-200/80 pt-4">
+          <p className="text-sm text-slate-500">
+            {allRequiredAnswered
+              ? 'All required ambiguity questions are answered. You can resume the workflow.'
+              : 'Complete all required questions before the coding workflow can continue.'}
+          </p>
 
-            <button
-              type="button"
-              onClick={() => onSubmit(submitPayload)}
-              disabled={!allRequiredAnswered || Object.keys(submitPayload).length === 0 || isLoading}
-              className="primary-button"
-            >
-              <Send className="h-4 w-4" />
-              <span>{isLoading ? 'Resuming workflow...' : 'Submit clarification'}</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => onSubmit(submitPayload)}
+            disabled={!allRequiredAnswered || Object.keys(submitPayload).length === 0 || isLoading}
+            className="primary-button"
+          >
+            <Send className="h-4 w-4" />
+            <span>{isLoading ? 'Resuming workflow...' : 'Submit clarification'}</span>
+          </button>
         </div>
       </div>
     </div>

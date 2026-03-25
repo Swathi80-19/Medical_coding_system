@@ -137,7 +137,11 @@ export function NoteDetailPage() {
         </div>
       </div>
 
-      <div className="min-h-[calc(100svh-11rem)] border-y border-stone-200/70 bg-white/20 px-4 py-4 sm:px-6 lg:px-8 xl:h-[calc(100svh-11rem)] xl:overflow-hidden">
+      <div
+        className={`min-h-[calc(100svh-11rem)] border-y border-stone-200/70 bg-white/20 px-4 py-4 sm:px-6 lg:px-8 ${
+          phase === 'needs_clarification' ? 'xl:h-auto xl:overflow-visible' : 'xl:h-[calc(100svh-11rem)] xl:overflow-hidden'
+        }`}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={phase}
